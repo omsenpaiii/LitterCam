@@ -1,4 +1,4 @@
-// For Mac
+# For Mac
 
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 import cv2
