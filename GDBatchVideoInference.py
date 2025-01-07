@@ -1,5 +1,3 @@
-# For Mac
-
 import cv2
 import os
 import glob
@@ -44,22 +42,18 @@ def process_video(video_path, output_folder):
     os.makedirs(annotated_folder, exist_ok=True)  # Create folder for annotated images
 
     # Extract frames from the video
-    frames_folder = os.path.join(output_folder, "frames")
+    frames_folder = os.path.join(output_folder, "frames", video_name)
     os.makedirs(frames_folder, exist_ok=True)
     FrameCapture(video_path, frames_folder)
 
     # Process each frame
-    IMAGE_FOLDER_PATH = frames_folder  # Path to folder containing frames
-    jpg_files = sorted(glob.glob(IMAGE_FOLDER_PATH + "/*.jpg"))  # Get all frame files sorted by name
+    jpg_files = sorted(glob.glob(frames_folder + "/*.jpg"))  # Get all frame files sorted by name
 
-    TEXT_PROMPT = "human . cigarette . hand . licenseplate ."
+    TEXT_PROMPT = "cigarette_butt ."
     BOX_THRESHOLD = 0.35  # Confidence threshold for bounding box detection
     TEXT_THRESHOLD = 0.25  # Confidence threshold for text matching
 
-    # Iterate through all frames (except the last one)
-    for i in range(len(jpg_files) - 1):
-        image_path = jpg_files[i]  # Path to the current frame
-
+    for i, image_path in enumerate(jpg_files):
         # Load the image and its source for annotation
         image_source, image = load_image(image_path)
 
@@ -80,13 +74,28 @@ def process_video(video_path, output_folder):
             annotated_frame_path = os.path.join(annotated_folder, f'annotated_frame{i:04d}.jpg')
             cv2.imwrite(annotated_frame_path, annotated_frame)
 
-    print(f"Annotated frames saved in: {annotated_folder}")
+    print(f"Annotated frames for video '{video_name}' saved in: {annotated_folder}")
 
-# Path to the input video
-video_path = "dataset/cigarette_video.mp4"
+# Main function to process all videos in the dataset/videos directory
+def process_all_videos(input_folder, output_folder):
+    """
+    Process all videos in the input folder and save annotated frames in the output folder.
 
-# Output folder to store the annotated frames
-output_folder = "dataset/annotated_videos"
+    Parameters:
+        input_folder (str): Path to the folder containing video files.
+        output_folder (str): Path to the folder to save annotated videos.
+    """
+    video_files = glob.glob(os.path.join(input_folder, "*.mp4"))  # Adjust extension if needed
+    print(f"Found {len(video_files)} videos to process.")
 
-# Process the video and save annotated frames
-process_video(video_path, output_folder)
+    for video_path in video_files:
+        print(f"Processing video: {video_path}")
+        process_video(video_path, output_folder)
+
+# Define paths
+input_folder = "dataset/videos"  # Folder containing videos
+output_folder = "dataset/annotated_videos"  # Folder to save annotated frames
+
+# Process all videos
+os.makedirs(output_folder, exist_ok=True)
+process_all_videos(input_folder, output_folder)
